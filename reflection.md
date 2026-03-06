@@ -39,6 +39,8 @@ I decided a bug was fixed by using two methods: automated pytest tests and manua
 - How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
 - What change did you make that finally gave the game a stable secret number?
 
+The secret number kept changing because every time the user interacted with the app — clicking a button, typing in the input — Streamlit re-executes the entire Python script from top to bottom. If the secret number is generated with `random.randint()` as a regular variable outside of session state, it gets re-generated with a new random value on every single rerun. The way I would explain Streamlit reruns to a friend is: imagine every time you click a button, the app forgets everything and starts from scratch, like reloading a webpage. Session state is like a little notebook that the app checks before rerunning — if a value is already written in the notebook, it uses that instead of creating a new one. The fix was wrapping the secret number initialization in `if "secret" not in st.session_state:` so it only generates a new number when one doesn't already exist, and the New Game button explicitly writes a new secret into session state when the player wants to restart.
+
 ---
 
 ## 5. Looking ahead: your developer habits
@@ -47,3 +49,6 @@ I decided a bug was fixed by using two methods: automated pytest tests and manua
   - This could be a testing habit, a prompting strategy, or a way you used Git.
 - What is one thing you would do differently next time you work with AI on a coding task?
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
+
+One habit I want to carry forward is writing targeted pytest cases for each specific bug before marking it as fixed. It is really satisfying to see a test go from failing to passing, and it gives me confidence that I did not accidentally break something else in the process. One thing I would do differently next time is to always carefully read the full diff of AI-generated changes before accepting them — in this project the AI initially kept a hidden bug (the `str()` type-cast on even attempts) because it looked like a safety feature, and I only caught it because I reviewed the diff line by line. This project taught me that AI-generated code can look convincing and even run without crashing, but still contain subtle logic errors that only show up when you actually test the behavior, not just the syntax. You have to stay in the driver's seat and verify every suggestion against the actual requirements rather than trusting the AI blindly.
+

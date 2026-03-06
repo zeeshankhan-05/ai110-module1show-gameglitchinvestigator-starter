@@ -25,13 +25,63 @@ It wrote the code, ran away, and now the game is unplayable.
 
 ## 📝 Document Your Experience
 
-- [ ] Describe the game's purpose.
-- [ ] Detail which bugs you found.
-- [ ] Explain what fixes you applied.
+### Game Purpose
+
+This is a Streamlit-based number guessing game where the player tries to guess a randomly generated secret number within a limited number of attempts. The game provides hint feedback ("Too High" or "Too Low") after each guess and tracks the player's score. Three difficulty levels (Easy, Normal, Hard) control the size of the number range and the number of attempts allowed.
+
+### Bugs Found
+
+1. **Inverted hint messages** — The `check_guess` function returned the correct outcome label (`"Too High"` / `"Too Low"`) but the user-facing message was backwards. When the guess was too high, it said "Go HIGHER!" instead of "Go LOWER!", leading the player in the wrong direction every time.
+
+2. **Wrong Hard difficulty range** — Hard mode used range `(1, 50)` while Normal used `(1, 100)`. This made Hard mode *easier* than Normal since there were fewer numbers to guess from.
+
+3. **Broken new-game reset** — Clicking "New Game" only reset the attempt counter and generated a new secret. It did not clear the score, game status, or guess history, so the game would still show "You already won" or "Game over" after resetting.
+
+4. **Secret-to-string type cast** — On even-numbered attempts, the code converted the secret to a string before passing it to `check_guess`, causing type-mismatch comparisons that gave wrong results.
+
+5. **Off-by-one attempt counter** — Attempts were initialized at `1` instead of `0`, so the first guess counted as attempt #2.
+
+### Fixes Applied
+
+| Bug | Fix | File |
+|-----|-----|------|
+| Inverted hints | Swapped the message text so "Too High" → "go LOWER!" and "Too Low" → "go HIGHER!" | `logic_utils.py` |
+| Wrong Hard range | Changed Hard from `(1, 50)` to `(1, 500)` | `logic_utils.py` |
+| Broken reset | Reset all session state fields (score, status, history, attempts, secret) | `app.py` |
+| String type-cast | Removed the `str()` conversion; secret is always compared as an `int` | `app.py` |
+| Off-by-one | Changed initial attempt count from `1` to `0` | `app.py` |
+| Mixed concerns | Refactored all game logic into `logic_utils.py`; `app.py` now handles only UI | Both files |
 
 ## 📸 Demo
 
-- [ ] [Insert a screenshot of your fixed, winning game here]
+### Fixed Game — Correct Hint Direction
+
+![Game showing correct "Too high — go LOWER!" hint after guessing 50 with secret 38](screenshots/game_fixed_hint.png)
+
+### Pytest Results — All 15 Tests Passing
+
+```
+============================= test session starts ==============================
+collected 15 items
+
+tests/test_game_logic.py::test_winning_guess PASSED                      [  6%]
+tests/test_game_logic.py::test_guess_too_high PASSED                     [ 13%]
+tests/test_game_logic.py::test_guess_too_low PASSED                      [ 20%]
+tests/test_game_logic.py::test_too_high_message_says_lower PASSED        [ 26%]
+tests/test_game_logic.py::test_too_low_message_says_higher PASSED        [ 33%]
+tests/test_game_logic.py::test_hard_range_wider_than_normal PASSED       [ 40%]
+tests/test_game_logic.py::test_easy_range_narrower_than_normal PASSED    [ 46%]
+tests/test_game_logic.py::test_all_ranges_start_at_one PASSED            [ 53%]
+tests/test_game_logic.py::test_parse_valid_integer PASSED                [ 60%]
+tests/test_game_logic.py::test_parse_empty_string PASSED                 [ 66%]
+tests/test_game_logic.py::test_parse_non_numeric PASSED                  [ 73%]
+tests/test_game_logic.py::test_parse_decimal_truncates PASSED            [ 80%]
+tests/test_game_logic.py::test_score_increases_on_win PASSED             [ 86%]
+tests/test_game_logic.py::test_score_decreases_on_miss PASSED            [ 93%]
+tests/test_game_logic.py::test_win_bonus_decreases_with_attempts PASSED  [100%]
+
+============================== 15 passed in 0.02s ==============================
+```
 
 ## 🚀 Stretch Features
 
